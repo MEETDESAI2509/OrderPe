@@ -1,0 +1,33 @@
+import streamlit as st
+import pymongo
+
+try:
+    conn = pymongo.MongoClient('mongodb+srv://admin:abcde12345@trial.fk9mp.mongodb.net/test')
+    print("Connected successfully!!!")
+except:
+    print("Could not connect to MongoDB")
+
+db = conn.Restaurent1
+result=[]
+st.title("Current Orders")
+for i in db.list_collection_names():
+    if i =='Feedback':
+        continue
+    else:
+        result.append(i)
+
+liveorder=st.multiselect("The current tables with live orders are ",result)
+
+st.title("Dishes to be made are ")
+
+for i in liveorder:
+    st.markdown("<h3>Table {} </h3>".format(i),unsafe_allow_html=True)
+    collection = db[i]
+    cursor = collection.find()
+    for record in cursor:
+        st.write("Dish name : "+str(record['Dish']) +' X ' + str(record['Quantity']))
+    if st.button('Clear Final order {} '.format(i)):
+        collection.delete_many({})
+        db[i].drop()
+        st.write("Order cleared refresh to complete")
+
